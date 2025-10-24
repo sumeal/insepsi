@@ -1,57 +1,56 @@
-version: "3.8"
 
 services:
-mariadb:
-  build: ./requirements/mariadb
-  image: mariadb
-  env_file: .env
-  environment:
-  - MYSQL_DATABASE=${MYSQL_DATABASE}
-  - MYSQL_USER=${MYSQL_USER}
-  - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-  - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-  volumes:
-  - ${MARIADB_DATA_PATH}:/var/lib/mysql
-  networks:
-  - inception
-  restart: unless-stopped
+  mariadb:
+    build: ./requirements/mariadb
+    image: mariadb
+    env_file: .env
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ${MARIADB_DATA_PATH}:/var/lib/mysql
+    networks:
+      - inception
+    restart: unless-stopped
 
-wordpress:
-  build: ./requirements/wordpress
-  image: wordpress
-  env_file: .env
-  environment:
-  - WORDPRESS_DB_HOST=mariadb:3306
-  - WORDPRESS_DB_NAME=${MYSQL_DATABASE}
-  - WORDPRESS_DB_USER=${MYSQL_USER}
-  - WORDPRESS_DB_PASSWORD=${MYSQL_PASSWORD}
-  - WP_TITLE=${WP_TITLE}
-  - WP_ADMIN_USER=${WP_ADMIN_USER}
-  - WP_ADMIN_PASSWORD=${WP_ADMIN_PASSWORD}
-  - WP_ADMIN_EMAIL=${WP_ADMIN_EMAIL}
-  - WP_URL=${DOMAIN_NAME}
-  volumes:
-  - ${WORDPRESS_DATA_PATH}:/var/www/html
-  depends_on:
-  - mariadb
-  networks:
-  - inception
-  restart: unless-stopped
+  wordpress:
+    build: ./requirements/wordpress
+    image: wordpress
+    env_file: .env
+    environment:
+      - WORDPRESS_DB_HOST=mariadb:3306
+      - WORDPRESS_DB_NAME=${MYSQL_DATABASE}
+      - WORDPRESS_DB_USER=${MYSQL_USER}
+      - WORDPRESS_DB_PASSWORD=${MYSQL_PASSWORD}
+      - WP_TITLE=${WP_TITLE}
+      - WP_ADMIN_USER=${WP_ADMIN_USER}
+      - WP_ADMIN_PASSWORD=${WP_ADMIN_PASSWORD}
+      - WP_ADMIN_EMAIL=${WP_ADMIN_EMAIL}
+      - WP_URL=${DOMAIN_NAME}
+    volumes:
+      - ${WORDPRESS_DATA_PATH}:/var/www/html
+    depends_on:
+      - mariadb
+    networks:
+      - inception
+    restart: unless-stopped
 
-nginx:
-  build: ./requirements/nginx
-  image: nginx
-  ports:
-  - "443:443" # only 443 exposed
-  volumes:
-  - ${WORDPRESS_DATA_PATH}:/var/www/html:ro
-  - ./srcs/requirements/nginx/conf:/etc/nginx/conf.d:ro
-  - ./srcs/requirements/nginx/conf/ssl:/etc/nginx/ssl:ro
-  depends_on:
-  - wordpress
-  networks:
-  - inception
-  restart: unless-stopped
+  nginx:
+    build: ./requirements/nginx
+    image: nginx
+    ports:
+      - "443:443" # only 443 exposed
+    volumes:
+      - ${WORDPRESS_DATA_PATH}:/var/www/html:ro
+      - ./requirements/nginx/conf:/etc/nginx/conf.d:ro
+      - ./requirements/nginx/conf/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - wordpress
+    networks:
+      - inception
+    restart: unless-stopped
 
 volumes:
   mariadb_data:
